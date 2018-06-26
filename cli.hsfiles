@@ -50,8 +50,10 @@ tests:
     main: Main.hs
     dependencies:
       - {{ name }}
+      - hedgehog
       - tasty
       - tasty-discover
+      - tasty-hedgehog
       - tasty-hspec
     ghc-options:
       - -rtsopts
@@ -82,6 +84,10 @@ module LibTest where
 
 import Protolude
 
+import Hedgehog (Property, (===), forAll, property)
+import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Range as Range
+
 import Test.Tasty.Hspec (Spec, describe, it, shouldBe)
 
 import qualified Lib as Lib
@@ -93,6 +99,14 @@ spec_lib = do
       let expected = 2
       let observed = Lib.someFunc 1 1
       observed `shouldBe` expected
+
+-- | 'someFunc' is commutative.
+hprop_someFuncCommutative :: Property
+hprop_someFuncCommutative =
+  property $ do
+    x <- forAll $ Gen.int Range.linearBounded
+    y <- forAll $ Gen.int Range.linearBounded
+    Lib.someFunc x y === Lib.someFunc y x
 
 {-# START_FILE benchmarks/Main.hs #-}
 module Main (main) where
