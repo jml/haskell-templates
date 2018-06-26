@@ -6,4 +6,4 @@ jobs:
       - image: fpco/stack-build:lts-11.15
     steps:
       - checkout
-      - run: ./test_template.sh cli.hsfiles
+      - run: ./test-template.sh cli
