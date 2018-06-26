@@ -39,6 +39,13 @@ How to use them
 
 .. code-block:: console
 
-    $ stack new <your-project> path/to/api.hsfiles
+    $ stack new <your-project> path/to/cli
 
 And then follow the instructions in the generated ``README.rst``
+
+.. _`stack`: https://docs.haskellstack.org/en/stable/README/
+.. _`tasty`: https://hackage.haskell.org/package/tasty
+.. _`tasty-discover`: https://hackage.haskell.org/package/tasty-discover
+.. _`criterion`: http://www.serpentine.com/criterion/
+.. _`hedgehog`: https://hackage.haskell.org/package/hedgehog
+.. _`optparse-applicative`: https://hackage.haskell.org/package/optparse-applicative
