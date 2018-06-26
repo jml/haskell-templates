@@ -1,0 +1,7 @@
+# Configuration used for testing templates
+templates:
+  params:
+    author-name: Test Author
+    author-email: test@example.com
+    copyright: Test Company
+    github-username: test
