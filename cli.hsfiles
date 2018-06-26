@@ -1,0 +1,434 @@
+{-# START_FILE package.yaml #-}
+name: {{name}}
+version: 0.1.0.0
+homepage: https://github.com/{{github-username}}{{^github-username}}weaveworks{{/github-username}}/{{name}}#readme
+license: Apache
+author: {{author-name}}{{^author-name}}Author name here{{/author-name}}
+maintainer: {{author-email}}{{^author-email}}example@example.com{{/author-email}}
+copyright: {{copyright}}{{^copyright}}{{year}}{{^year}}2018{{/year}} Weaveworks Ltd{{/copyright}}
+
+extra-source-files:
+  - README.rst
+  - CHANGELOG.rst
+
+synopsis: Short description of your package
+category: {{category}}{{^category}}Web{{/category}}
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README file.
+description: Please see the README on GitHub at <https://github.com/{{github-username}}{{^github-username}}githubuser{{/github-username}}/{{name}}#readme>
+
+ghc-options: -Wall -Werror
+default-extensions:
+  - NamedFieldPuns  # Allow `FooRecord{foo, bar, baz} = fooRecord`
+  - NoImplicitPrelude  # We use Protolude as the standard Prelude
+  - OverloadedStrings  # Allow Haskell to interpret string literals as Text, ByteString, etc.
+
+dependencies:
+  - base >= 4.7 && < 5
+  - protolude
+
+library:
+  source-dirs: src
+
+benchmarks:
+  {{name}}-benchmarks:
+    source-dirs: benchmarks
+    main: Main.hs
+    dependencies:
+      - {{name}}
+      - criterion
+    ghc-options:
+      - -rtsopts
+      - -threaded
+      - -with-rtsopts=-N
+
+tests:
+  {{ name }}-tests:
+    source-dirs: tests
+    main: Main.hs
+    dependencies:
+      - {{ name }}
+      - tasty
+      - tasty-discover
+      - tasty-hspec
+    ghc-options:
+      - -rtsopts
+      - -threaded
+      - -with-rtsopts=-N
+
+executables:
+  {{name}}:
+    main: Main.hs
+    source-dirs: cmd
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - {{name}}
+
+
+{-# START_FILE Setup.hs #-}
+import Distribution.Simple
+main = defaultMain
+
+{-# START_FILE tests/Main.hs #-}
+{-# OPTIONS_GHC -F -pgmF tasty-discover #-}
+
+{-# START_FILE tests/LibTest.hs #-}
+module LibTest where
+
+import Protolude
+
+import Test.Tasty.Hspec (Spec, describe, it, shouldBe)
+
+import qualified Lib as Lib
+
+spec_lib :: Spec
+spec_lib = do
+  describe "someFunc" $ do
+    it "adds numbers" $ do
+      let expected = 2
+      let observed = Lib.someFunc 1 1
+      observed `shouldBe` expected
+
+{-# START_FILE benchmarks/Main.hs #-}
+module Main (main) where
+
+import Protolude
+
+-- You can benchmark your code quickly and effectively with Criterion. See its
+-- website for help: <http://www.serpentine.com/criterion/>.
+import Criterion.Main
+
+main :: IO ()
+main = defaultMain [bench "const" (whnf const ())]
+
+{-# START_FILE src/Lib.hs #-}
+module Lib
+  ( someFunc
+  ) where
+
+import Protolude
+
+someFunc :: Int -> Int -> Int
+someFunc x y = x + y
+
+{-# START_FILE cmd/Main.hs #-}
+module Main (main) where
+
+import Protolude
+
+import qualified Lib
+
+main :: IO ()
+main = do
+  let result = Lib.someFunc 2 3
+  putText $ "Result = " <> show result
+
+{-# START_FILE README.rst #-}
+===================
+{{name}}
+===================
+
+[![Circle CI](https://circleci.com/gh/{{github-username}}{{^github-username}}weaveworks{{/github-username}}/{{name}}/tree/master.svg?style=shield)](https://circleci.com/gh/{{github-username}}{{^github-username}}weaveworks{{/github-username}}/{{name}}/tree/master)
+
+.. what is {{name}}? why would I want to use it? how do I use it?
+
+.. After instantiating this template, you need to do a few things manually:
+   1. Add a synopsis to ``package.yaml``. It should be a short, one sentence description of your project.
+   2. Rename ``src/Lib.hs`` to the module name of your package. Typically this is your package name in ``CamelCase``.
+   3. Update ``cmd/Main.hs`` and ``tests/Tasty.hs`` to refer to the new package.
+   4. Add the following to ``stack.yaml``:
+       image:
+         container:
+           base: quay.io/weaveworks/{{name}}-base
+           name: quay.io/weaveworks/{{name}}
+           executables:
+             - {{name}}
+   5. Write a decent README
+   6. Update the LTS image version in ``.circleci/config.yml``
+   7. Register the repository on CircleCI
+   8. Delete these comments
+
+How to build this project
+=========================
+
+You really want to have `stack`_ installed, and to invoke it directly.
+
+
+{-# START_FILE Makefile #-}
+.PHONY: all build test clean build-image publish-image
+.DEFAULT_GOAL := all
+
+# Boiler plate for bulding Docker containers.
+SUDO := $(shell docker info >/dev/null 2>&1 || echo "sudo -E")
+RM := --rm
+IMAGE_TAG := $(shell ./tools/image-tag)
+UPTODATE := .uptodate
+
+# Flags to pass to stack. Typically `--docker`
+STACK_FLAGS :=
+
+# Flags to pass to stack build & test. Typically `--fast`
+STACK_BUILD_FLAGS :=
+
+# This must match the base image in stack.yaml
+BASE_IMAGE_NAME := quay.io/weaveworks/{{name}}-base
+
+# This must match the output image generated by Stack
+STACK_OUTPUT_IMAGE_NAME := quay.io/weaveworks/{{name}}-{{name}}
+
+# The image name we actually want to generate. This is what we push to an
+# image registry.
+OUTPUT_IMAGE_NAME := quay.io/weaveworks/compare-revisions
+
+UPTODATE_FILES := $(UPTODATE) {{name}}-base/$(UPTODATE)
+IMAGE_NAMES := $(BASE_IMAGE_NAME) $(STACK_OUTPUT_IMAGE_NAME) $(OUTPUT_IMAGE_NAME)
+
+# Build the base image
+compare-revisions-base/$(UPTODATE): {{name}}-base/Dockerfile
+	$(SUDO) docker build -t $(BASE_IMAGE_NAME) {{name}}-base/
+	touch $@
+
+all: build-image
+
+# stack does its own dependency management and it's a fool's errand to try to
+# second-guess it. Instead, just always run stack when we think we need a build.
+build:
+	stack $(STACK_FLAGS) build $(STACK_BUILD_FLAGS)
+
+test: build
+	stack $(STACK_FLAGS) test $(STACK_BUILD_FLAGS)
+
+$(UPTODATE): {{name}}-base/$(UPTODATE) build
+	stack $(STACK_FLAGS) image container
+	$(SUDO) docker tag $(STACK_OUTPUT_IMAGE_NAME) $(OUTPUT_IMAGE_NAME):$(IMAGE_TAG)
+	@echo $(OUTPUT_IMAGE_NAME):$(IMAGE_TAG)
+	touch $@
+
+# Human friendly alias for building the Docker image
+build-image: $(UPTODATE)
+
+publish-image: build-image
+	$(SUDO) docker push $(OUTPUT_IMAGE_NAME):$(IMAGE_TAG)
+
+clean:
+	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true
+	rm -rf $(UPTODATE_FILES)
+	stack $(STACK_FLAGS) clean
+
+{-# START_FILE .circleci/config.yml #-}
+version: 2
+jobs:
+  build:
+    docker:
+      # Update stack.yaml when you change this.
+      - image: fpco/stack-build:lts-11.8
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: apt update && apt install -y docker.io
+      - run: make all
+
+      - deploy:
+          name: Maybe push master images
+          command: |
+            if [ -z "${CIRCLE_TAG}" -a "${CIRCLE_BRANCH}" == "master" ]; then
+              docker login -u "$DOCKER_USER" -p "$DOCKER_PASS" quay.io
+              make publish-image
+            fi
+
+{-# START_FILE CHANGELOG.rst #-}
+=========
+Changelog
+=========
+
+0.1.0.0 (YYYY-MM-DD)
+====================
+
+New features
+------------
+
+Changes
+-------
+
+Enhancements
+------------
+
+Fixes
+-----
+
+{-# START_FILE LICENSE #-}
+Apache License
+
+Version 2.0, January 2004
+
+http://www.apache.org/licenses/
+
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+1. Definitions.
+
+"License" shall mean the terms and conditions for use, reproduction, and
+distribution as defined by Sections 1 through 9 of this document.
+
+"Licensor" shall mean the copyright owner or entity authorized by the
+copyright owner that is granting the License.
+
+"Legal Entity" shall mean the union of the acting entity and all other
+entities that control, are controlled by, or are under common control with
+that entity. For the purposes of this definition, "control" means (i) the
+power, direct or indirect, to cause the direction or management of such
+entity, whether by contract or otherwise, or (ii) ownership of fifty percent
+(50%) or more of the outstanding shares, or (iii) beneficial ownership of such
+entity.
+
+"You" (or "Your") shall mean an individual or Legal Entity exercising
+permissions granted by this License.
+
+"Source" form shall mean the preferred form for making modifications,
+including but not limited to software source code, documentation source, and
+configuration files.
+
+"Object" form shall mean any form resulting from mechanical transformation or
+translation of a Source form, including but not limited to compiled object
+code, generated documentation, and conversions to other media types.
+
+"Work" shall mean the work of authorship, whether in Source or Object form,
+made available under the License, as indicated by a copyright notice that is
+included in or attached to the work (an example is provided in the Appendix
+below).
+
+"Derivative Works" shall mean any work, whether in Source or Object form, that
+is based on (or derived from) the Work and for which the editorial revisions,
+annotations, elaborations, or other modifications represent, as a whole, an
+original work of authorship. For the purposes of this License, Derivative
+Works shall not include works that remain separable from, or merely link (or
+bind by name) to the interfaces of, the Work and Derivative Works thereof.
+
+"Contribution" shall mean any work of authorship, including the original
+version of the Work and any modifications or additions to that Work or
+Derivative Works thereof, that is intentionally submitted to Licensor for
+inclusion in the Work by the copyright owner or by an individual or Legal
+Entity authorized to submit on behalf of the copyright owner. For the purposes
+of this definition, "submitted" means any form of electronic, verbal, or
+written communication sent to the Licensor or its representatives, including
+but not limited to communication on electronic mailing lists, source code
+control systems, and issue tracking systems that are managed by, or on behalf
+of, the Licensor for the purpose of discussing and improving the Work, but
+excluding communication that is conspicuously marked or otherwise designated
+in writing by the copyright owner as "Not a Contribution."
+
+"Contributor" shall mean Licensor and any individual or Legal Entity on behalf
+of whom a Contribution has been received by Licensor and subsequently
+incorporated within the Work.
+
+2. Grant of Copyright License. Subject to the terms and conditions of this
+License, each Contributor hereby grants to You a perpetual, worldwide,
+non-exclusive, no-charge, royalty-free, irrevocable copyright license to
+reproduce, prepare Derivative Works of, publicly display, publicly perform,
+sublicense, and distribute the Work and such Derivative Works in Source or
+Object form.
+
+3. Grant of Patent License. Subject to the terms and conditions of this
+License, each Contributor hereby grants to You a perpetual, worldwide,
+non-exclusive, no-charge, royalty-free, irrevocable (except as stated in this
+section) patent license to make, have made, use, offer to sell, sell, import,
+and otherwise transfer the Work, where such license applies only to those
+patent claims licensable by such Contributor that are necessarily infringed by
+their Contribution(s) alone or by combination of their Contribution(s) with
+the Work to which such Contribution(s) was submitted. If You institute patent
+litigation against any entity (including a cross-claim or counterclaim in a
+lawsuit) alleging that the Work or a Contribution incorporated within the Work
+constitutes direct or contributory patent infringement, then any patent
+licenses granted to You under this License for that Work shall terminate as of
+the date such litigation is filed.
+
+4. Redistribution. You may reproduce and distribute copies of the Work or
+Derivative Works thereof in any medium, with or without modifications, and in
+Source or Object form, provided that You meet the following conditions:
+
+You must give any other recipients of the Work or Derivative Works a copy of
+this License; and
+
+You must cause any modified files to carry prominent notices stating that You
+changed the files; and
+
+You must retain, in the Source form of any Derivative Works that You
+distribute, all copyright, patent, trademark, and attribution notices from the
+Source form of the Work, excluding those notices that do not pertain to any
+part of the Derivative Works; and
+
+If the Work includes a "NOTICE" text file as part of its distribution, then
+any Derivative Works that You distribute must include a readable copy of the
+attribution notices contained within such NOTICE file, excluding those notices
+that do not pertain to any part of the Derivative Works, in at least one of
+the following places: within a NOTICE text file distributed as part of the
+Derivative Works; within the Source form or documentation, if provided along
+with the Derivative Works; or, within a display generated by the Derivative
+Works, if and wherever such third-party notices normally appear. The contents
+of the NOTICE file are for informational purposes only and do not modify the
+License. You may add Your own attribution notices within Derivative Works that
+You distribute, alongside or as an addendum to the NOTICE text from the Work,
+provided that such additional attribution notices cannot be construed as
+modifying the License.
+
+You may add Your own copyright statement to Your modifications and may provide
+additional or different license terms and conditions for use, reproduction, or
+distribution of Your modifications, or for any such Derivative Works as a
+whole, provided Your use, reproduction, and distribution of the Work otherwise
+complies with the conditions stated in this License.
+
+5. Submission of Contributions. Unless You explicitly state otherwise, any
+Contribution intentionally submitted for inclusion in the Work by You to the
+Licensor shall be under the terms and conditions of this License, without any
+additional terms or conditions. Notwithstanding the above, nothing herein
+shall supersede or modify the terms of any separate license agreement you may
+have executed with Licensor regarding such Contributions.
+
+6. Trademarks. This License does not grant permission to use the trade names,
+trademarks, service marks, or product names of the Licensor, except as
+required for reasonable and customary use in describing the origin of the Work
+and reproducing the content of the NOTICE file.
+
+7. Disclaimer of Warranty. Unless required by applicable law or agreed to in
+writing, Licensor provides the Work (and each Contributor provides its
+Contributions) on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied, including, without limitation, any warranties
+or conditions of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+PARTICULAR PURPOSE. You are solely responsible for determining the
+appropriateness of using or redistributing the Work and assume any risks
+associated with Your exercise of permissions under this License.
+
+8. Limitation of Liability. In no event and under no legal theory, whether in
+tort (including negligence), contract, or otherwise, unless required by
+applicable law (such as deliberate and grossly negligent acts) or agreed to in
+writing, shall any Contributor be liable to You for damages, including any
+direct, indirect, special, incidental, or consequential damages of any
+character arising as a result of this License or out of the use or inability
+to use the Work (including but not limited to damages for loss of goodwill,
+work stoppage, computer failure or malfunction, or any and all other
+commercial damages or losses), even if such Contributor has been advised of
+the possibility of such damages.
+
+9. Accepting Warranty or Additional Liability. While redistributing the Work
+or Derivative Works thereof, You may choose to offer, and charge a fee for,
+acceptance of support, warranty, indemnity, or other liability obligations
+and/or rights consistent with this License. However, in accepting such
+obligations, You may act only on Your own behalf and on Your sole
+responsibility, not on behalf of any other Contributor, and only if You agree
+to indemnify, defend, and hold each Contributor harmless for any liability
+incurred by, or claims asserted against, such Contributor by reason of your
+accepting any such warranty or additional liability.
+
+END OF TERMS AND CONDITIONS
+
+{-# START_FILE .gitignore #-}
+# Stack uses this directory as scratch space
+.stack-work/
+# Stack generates the Cabal file from `package.yaml` via hpack
+{{name}}.cabal
+*~
