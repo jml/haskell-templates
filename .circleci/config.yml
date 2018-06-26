@@ -1,0 +1,9 @@
+version: 2
+jobs:
+  build:
+    docker:
+      # Update stack.yaml when you change this.
+      - image: fpco/stack-build:lts-11.15
+    steps:
+      - checkout
+      - run: ./test_template.sh cli.hsfiles
