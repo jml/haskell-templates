@@ -14,13 +14,13 @@ Each of the templates provides the following:
 
 - a library where all of the code lives
 - tests, using `tasty`_, with automatic discovery via `tasty-discover`_
+- sample tests using `hedgehog`_
 - benchmarks, using `criterion`_
 
 Still to do:
 
-- sample tests using `hedgehog`_
 - command-line pasing using `optparse-applicative`_
-
+- enforcing good style with `hlint`_, coupled with an ``.hlint.yaml`` for local customizations
 
 cli
 ---
@@ -52,3 +52,4 @@ And then follow the instructions in the generated ``README.rst``
 .. _`criterion`: http://www.serpentine.com/criterion/
 .. _`hedgehog`: https://hackage.haskell.org/package/hedgehog
 .. _`optparse-applicative`: https://hackage.haskell.org/package/optparse-applicative
+.. _`hlint`: https://github.com/ndmitchell/hlint#readme
