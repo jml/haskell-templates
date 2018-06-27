@@ -2,7 +2,8 @@
 haskell-templates
 =================
 
-[![Circle CI](https://circleci.com/gh/jml/haskell-templates/tree/master.svg?style=shield)](https://circleci.com/gh/jml/haskell-templates/tree/master)
+.. image:: https://circleci.com/gh/jml/haskell-templates/tree/master.svg?style=svg
+    :target: https://circleci.com/gh/jml/haskell-templates/tree/master
 
 `stack`_ templates that encode my opinion about how to run Haskell projects.
 
