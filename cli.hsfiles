@@ -305,7 +305,7 @@ You really want to have `stack`_ installed, and to invoke it directly.
 # Boiler plate for bulding Docker containers.
 SUDO := $(shell docker info >/dev/null 2>&1 || echo "sudo -E")
 RM := --rm
-IMAGE_TAG := $(shell ./tools/image-tag)
+IMAGE_TAG := $(shell bash ./tools/image-tag)
 UPTODATE := .uptodate
 
 # Flags to pass to stack. Typically `--docker`
@@ -362,13 +362,32 @@ clean:
 	rm -rf $(UPTODATE_FILES)
 	stack $(STACK_FLAGS) clean
 
+{-# START_FILE {{name}}-base/Dockerfile #-}
+FROM ubuntu:18.04
+
+{-# START_FILE tools/image-tag #-}
+#!/usr/bin/env bash
+#
+# Generate an image tag with the Git branch, Git SHA1, and a "-WIP" suffix if
+# there are local changes.
+#
+# Assumes it is being run inside a Git repository.
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+WORKING_SUFFIX=$(if ! git diff --exit-code --quiet HEAD >&2; then echo "-WIP"; else echo ""; fi)
+BRANCH_PREFIX=$(git rev-parse --abbrev-ref HEAD)
+echo "${BRANCH_PREFIX//\//-}-$(git rev-parse --short HEAD)$WORKING_SUFFIX"
+
 {-# START_FILE .circleci/config.yml #-}
 version: 2
 jobs:
   build:
     docker:
       # Update stack.yaml when you change this.
-      - image: fpco/stack-build:lts-11.8
+      - image: fpco/stack-build:lts-11.15
     steps:
       - checkout
       - setup_remote_docker
