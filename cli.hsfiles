@@ -324,6 +324,7 @@ How to build this project
 
 You really want to have `stack`_ installed, and to invoke it directly.
 
+.. _`stack`: https://docs.haskellstack.org/en/stable/README/
 
 {-# START_FILE Makefile #-}
 .PHONY: all build test clean build-image publish-image lint
