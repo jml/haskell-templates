@@ -6,4 +6,5 @@ jobs:
       - image: fpco/stack-build:lts-11.15
     steps:
       - checkout
+      - run: stack install hlint
       - run: ./test-template.sh cli
