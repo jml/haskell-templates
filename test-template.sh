@@ -16,6 +16,7 @@ main() {
     STACK_CONFIG="${STACK_CONFIG}" "${STACK}" new "${project_name}" --bare "${template_file}"
     STACK_CONFIG="${STACK_CONFIG}" "${STACK}" test --fast
     STACK_CONFIG="${STACK_CONFIG}" "${STACK}" bench --fast
+    hlint .
     # Deliberately leave the directory around if the test fails so we can
     # debug the failure.
     rm -rf "${tmp_dir}"
