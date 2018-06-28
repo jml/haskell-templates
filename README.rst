@@ -16,6 +16,7 @@ Each of the templates provides the following:
 - tests, using `tasty`_, with automatic discovery via `tasty-discover`_
 - sample tests using `hedgehog`_
 - benchmarks, using `criterion`_
+- command-line pasing using `optparse-applicative`_
 
 Each of the templates assumes you already have the following:
 
@@ -25,7 +26,6 @@ Each of the templates assumes you already have the following:
 
 Still to do:
 
-- command-line pasing using `optparse-applicative`_
 - enforcing good style with `hlint`_, coupled with an ``.hlint.yaml`` for local customizations
 
 cli
@@ -48,7 +48,7 @@ How to use them
 
 .. code-block:: console
 
-    $ stack new <your-project> path/to/cli
+    $ stack new <your-project> path/to/cli -p "category:Web" -p "synopsis:Short summary of your program" -p "image-registry:quay.io/jml"
 
 And then follow the instructions in the generated ``README.rst``
 
