@@ -11,7 +11,7 @@ extra-source-files:
   - README.rst
   - CHANGELOG.rst
 
-synopsis: Short description of your package
+synopsis: {{synopsis}}{{^synopsis}}Short description of your package{{/synopsis}}
 category: {{category}}{{^category}}Web{{/category}}
 
 # To avoid duplicated efforts in documentation and dealing with the
@@ -31,6 +31,8 @@ dependencies:
 
 library:
   source-dirs: src
+  dependencies:
+    - optparse-applicative
 
 benchmarks:
   {{name}}-benchmarks:
@@ -70,6 +72,7 @@ executables:
       - -with-rtsopts=-N
     dependencies:
       - {{name}}
+      - optparse-applicative
 
 
 {-# START_FILE Setup.hs #-}
@@ -126,10 +129,30 @@ main = defaultMain [bench "const" (whnf const ())]
 
 {-# START_FILE src/Lib.hs #-}
 module Lib
-  ( someFunc
+  ( Config
+  , options
+  , someFunc
   ) where
 
 import Protolude
+
+import qualified Options.Applicative as Opt
+
+-- | Overall command-line configuration.
+data Config = Config deriving (Eq, Show)
+
+-- | Command-line parser for {{name}}.
+options :: Opt.ParserInfo Config
+options = Opt.info (Opt.helper <*> parser) description
+  where
+    parser = pure Config
+
+    description =
+      fold
+        [ Opt.fullDesc
+        , Opt.progDesc "{{synopsis}}{{^synopsis}}short description of your program{{/synopsis}}"
+        , Opt.header "{{name}} - {{synopsis}}{{^synopsis}}short description of your program{{/synopsis}}"
+        ]
 
 someFunc :: Int -> Int -> Int
 someFunc x y = x + y
@@ -139,11 +162,15 @@ module Main (main) where
 
 import Protolude
 
+import qualified Options.Applicative as Opt
+
 import qualified Lib
 
 main :: IO ()
 main = do
+  config <- Opt.execParser Lib.options
   let result = Lib.someFunc 2 3
+  putText $ "Config = " <> show config
   putText $ "Result = " <> show result
 
 {-# START_FILE .hlint.yaml #-}

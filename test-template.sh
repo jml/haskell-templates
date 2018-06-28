@@ -17,6 +17,7 @@ main() {
     STACK_CONFIG="${STACK_CONFIG}" "${STACK}" test --fast
     STACK_CONFIG="${STACK_CONFIG}" "${STACK}" bench --fast
     hlint .
+    stack exec "${project_name}" -- --help
     # Deliberately leave the directory around if the test fails so we can
     # debug the failure.
     rm -rf "${tmp_dir}"
