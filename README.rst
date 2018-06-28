@@ -17,6 +17,12 @@ Each of the templates provides the following:
 - sample tests using `hedgehog`_
 - benchmarks, using `criterion`_
 
+Each of the templates assumes you already have the following:
+
+- `stack`_
+- `docker`_
+- bash
+
 Still to do:
 
 - command-line pasing using `optparse-applicative`_
@@ -53,3 +59,4 @@ And then follow the instructions in the generated ``README.rst``
 .. _`hedgehog`: https://hackage.haskell.org/package/hedgehog
 .. _`optparse-applicative`: https://hackage.haskell.org/package/optparse-applicative
 .. _`hlint`: https://github.com/ndmitchell/hlint#readme
+.. _`docker`: https://www.docker.com
