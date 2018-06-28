@@ -17,16 +17,14 @@ Each of the templates provides the following:
 - sample tests using `hedgehog`_
 - benchmarks, using `criterion`_
 - command-line pasing using `optparse-applicative`_
+- `hlint`_ enforced with CI, coupled with an ``.hlint.yaml`` for local customizations
+
 
 Each of the templates assumes you already have the following:
 
 - `stack`_
 - `docker`_
 - bash
-
-Still to do:
-
-- enforcing good style with `hlint`_, coupled with an ``.hlint.yaml`` for local customizations
 
 cli
 ---
