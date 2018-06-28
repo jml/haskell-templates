@@ -359,7 +359,7 @@ IMAGE_NAMES := $(BASE_IMAGE_NAME) $(STACK_OUTPUT_IMAGE_NAME) $(OUTPUT_IMAGE_NAME
 	$(SUDO) docker build -t $(BASE_IMAGE_NAME) {{name}}-base/
 	touch $@
 
-all: build-image
+all: build-image lint
 
 lint:
 	hlint .
@@ -416,6 +416,7 @@ else
 fi
 
 {-# START_FILE .circleci/config.yml #-}
+{{=<% %>=}}
 version: 2
 jobs:
   build:
@@ -425,6 +426,30 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
+      - restore_cache:
+          keys:
+            - stack-ghc-{{ checksum "stack.yaml" }}
+      - restore_cache:
+          keys:
+            - stack-deps-{{ checksum "package.yaml" }}
+      - run:
+          name: Set up Stack
+          command: stack setup --no-terminal --no-reinstall
+      - save_cache:
+          key: stack-ghc-{{ checksum "stack.yaml" }}
+          paths:
+            - /root/.stack
+      - run:
+          name: Install dependencies
+          command: stack build --skip-ghc-check --no-terminal --test --only-dependencies
+      - run:
+          name: Install hlint
+          command: stack install hlint
+      - save_cache:
+          key: stack-deps-{{ checksum "package.yaml" }}
+          paths:
+            - /root/.stack
+            - .stack-work
       - run: apt update && apt install -y docker.io
       - run: make all
 
@@ -436,6 +461,7 @@ jobs:
               docker login -u "$DOCKER_USER" -p "$DOCKER_PASS" quay.io
               make publish-image
             fi
+<%={{ }}=%>
 
 {-# START_FILE CHANGELOG.rst #-}
 =========
