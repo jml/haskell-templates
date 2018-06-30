@@ -654,4 +654,7 @@ END OF TERMS AND CONDITIONS
 .stack-work/
 # Stack generates the Cabal file from `package.yaml` via hpack
 {{name}}.cabal
+# Our Makefile uses this to register that Docker images have been built
+.uptodate
+# We are inveterate Emacs users.
 *~
